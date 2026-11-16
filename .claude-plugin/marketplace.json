@@ -1,0 +1,5 @@
+{
+  "name": "claude-theme-death-metal",
+  "owner": { "name": "Schalk Neethling" },
+  "plugins": [{ "name": "death-metal", "source": "./" }]
+}
