@@ -4,10 +4,14 @@ A death metal album cover look for the Claude desktop app: a graveyard under a
 blood moon, drawn behind the conversation, with frosted panels over it and
 blood-red and bone colors throughout the app.
 
-![The scene: a graveyard under a blood moon, with a headstone showing 30% context](images/scene.jpg)
+![The theme in the Claude desktop app: the conversation on a frosted panel over the graveyard scene, with the headstone showing 49% context](images/app.webp)
 
-The picture shows the scene alone. In the app, the conversation sits over the
-middle of it on a frosted panel.
+The theme in the Claude desktop app, at 49% context. The conversation sits on a
+frosted panel, and the scene shows around and through it.
+
+![The scene alone: a graveyard under a blood moon, with a headstone showing 30% context](images/scene.jpg)
+
+The scene alone, at 30% context.
 
 The scene is one SVG (Scalable Vector Graphics) drawing made in code. It uses no
 image files and sends nothing anywhere.
