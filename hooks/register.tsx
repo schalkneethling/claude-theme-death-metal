@@ -130,6 +130,12 @@ function drawRidge(seed: number, baseY: number, height: number, step: number, co
   return `<path d="M-400,1700 L${points.join(' L')} L2000,1700Z" fill="${color}"/>`
 }
 
+// How many times a tree's branches fork. The desktop app plays a scene's
+// animations only while the drawing stays light, and a tree's stroke count
+// roughly doubles with each fork: 7 forks came to about 900 strokes a tree and
+// the scene stood still. 5 forks is about 100.
+const TREE_FORKS = 5
+
 /**
  * A dead tree, grown one branch at a time: each branch ends in two or three
  * thinner, shorter branches that bend away from it.
@@ -165,11 +171,11 @@ function drawDeadTree(seed: number, x: number, y: number, height: number, lean: 
       const side = index % 2 === 0 ? 1 : -1
       const spread = side * (0.3 + random() * 0.6)
 
-      grow(toX, toY, angle + spread, length * (0.6 + random() * 0.22), width * 0.6, depth - 1)
+      grow(toX, toY, angle + spread, length * (0.64 + random() * 0.2), width * 0.58, depth - 1)
     }
   }
 
-  grow(x, y, Math.PI / 2 + lean, height * 0.32, height * 0.055, 7)
+  grow(x, y, Math.PI / 2 + lean, height * 0.32, height * 0.055, TREE_FORKS)
 
   const paths = [...levels.values()].map(
     level => `<path d="${level.segments.join('')}" stroke-width="${round(level.width)}"/>`,
@@ -261,20 +267,31 @@ function drawStars(): string {
   return `<g fill="#ffb8a0">${stars.join('')}</g>`
 }
 
+// Embers rise in a few groups, not one by one: each group is a single
+// animation, which keeps the scene light enough for the app to play it.
+const EMBER_GROUPS = 6
+
 function drawEmbers(count: number): string {
   const random = createRandom(29)
-  const embers: string[] = []
+  const groups: string[][] = Array.from({ length: EMBER_GROUPS }, () => [])
 
   for (let index = 0; index < count; index += 1) {
     const x = Math.round(random() * 1600)
-    const y = Math.round(720 + random() * 200)
+    const y = Math.round(740 + random() * 200)
     const radius = (1.2 + random() * 1.6).toFixed(1)
-    const delay = (random() * 14).toFixed(1)
 
-    embers.push(`<circle class="ember" cx="${x}" cy="${y}" r="${radius}" style="animation-delay:-${delay}s"/>`)
+    groups[index % EMBER_GROUPS]?.push(`<circle cx="${x}" cy="${y}" r="${radius}"/>`)
   }
 
-  return `<g fill="#ff7a3c">${embers.join('')}</g>`
+  const drawn = groups.map((embers, index) => {
+    // Each group has its own pace and starting point, so they do not rise in step.
+    const seconds = 12 + index * 1.7
+    const delay = (seconds * index) / EMBER_GROUPS
+
+    return `<g class="ember" style="animation-duration:${seconds.toFixed(1)}s;animation-delay:-${delay.toFixed(1)}s">${embers.join('')}</g>`
+  })
+
+  return `<g fill="#ff7a3c">${drawn.join('')}</g>`
 }
 
 /** A forked lightning bolt from the top of the sky. It is hidden except while it flashes. */
@@ -320,28 +337,19 @@ ${figure}
 </g>`
 }
 
+// No group in the scene is positioned by a stylesheet rule. An earlier version
+// moved the land, the moon and the edge pieces with CSS variables and aspect-ratio
+// media queries, to suit the window's shape, and the desktop app then played none
+// of the scene's animations. The scene is anchored to the bottom of the window
+// instead (preserveAspectRatio "xMidYMax slice"), so a wide window crops sky,
+// not graveyard.
 const STYLE = `
-:root{--dx:0px;--dy:0px}
-.land{transform:translateY(calc(var(--dy) * -1))}
-.left{transform:translateX(var(--dx))}
-.right{transform:translateX(calc(var(--dx) * -1))}
-.sky-left{transform:translate(var(--dx),var(--dy))}
-.sky-right{transform:translate(calc(var(--dx) * -1),var(--dy))}
-/* A wide window crops the top and bottom, so the land moves up and the sky pieces move down. */
-@media (min-aspect-ratio:19/10){:root{--dy:110px}}
-@media (min-aspect-ratio:22/10){:root{--dy:180px}}
-@media (min-aspect-ratio:26/10){:root{--dy:250px}}
-/* A narrow window crops the sides, so the pieces at the edges move toward the middle. */
-@media (max-aspect-ratio:14/10){:root{--dx:200px}}
-@media (max-aspect-ratio:115/100){:root{--dx:330px}}
-@media (max-aspect-ratio:9/10){:root{--dx:440px}}
-@media (max-aspect-ratio:7/10){:root{--dx:560px}.right{display:none}}
 .halo{transform-origin:1330px 230px;animation:pulse 9s ease-in-out infinite}
 .cloud{animation:drift 90s ease-in-out infinite alternate}
 .cloud.slow{animation-duration:140s;animation-direction:alternate-reverse}
 .fog{animation:drift 60s ease-in-out infinite alternate}
 .fog.slow{animation-duration:85s;animation-direction:alternate-reverse}
-.ember{animation:rise 14s linear infinite}
+.ember{animation:rise 14s ease-in-out infinite}
 .windows{animation:flicker 5s ease-in-out infinite}
 .flight{animation:fly 26s ease-in-out infinite alternate}
 .flap{transform-origin:0 0;animation:flap 0.9s ease-in-out infinite}
@@ -351,7 +359,7 @@ const STYLE = `
 @keyframes warn{50%{opacity:0.45}}
 @keyframes pulse{50%{transform:scale(1.08);opacity:0.8}}
 @keyframes drift{from{transform:translateX(-120px)}to{transform:translateX(120px)}}
-@keyframes rise{0%{transform:translate(0,0);opacity:0}10%{opacity:0.9}100%{transform:translate(40px,-520px);opacity:0}}
+@keyframes rise{0%{transform:translate(0,0);opacity:0}15%{opacity:0.9}70%{opacity:0.6}100%{transform:translate(36px,-300px);opacity:0}}
 @keyframes flicker{0%,100%{opacity:0.95}40%{opacity:0.7}55%{opacity:1}70%{opacity:0.8}}
 @keyframes fly{from{transform:translate(0,0)}to{transform:translate(-160px,-50px)}}
 @keyframes flap{50%{transform:scaleY(0.35)}}
@@ -390,36 +398,36 @@ function buildScene(percent: number | undefined): string {
     ? '<g class="fog slow"><ellipse cx="300" cy="700" rx="700" ry="80" fill="url(#fog)"/><ellipse cx="1250" cy="730" rx="700" ry="74" fill="url(#fog)"/></g>'
     : ''
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="100%" height="100%" preserveAspectRatio="xMidYMax slice">
 <style>${STYLE}${strike}</style>
 <defs>${buildDefinitions(stage)}</defs>
 <rect x="-400" y="-600" width="2400" height="1500" fill="url(#sky)"/>
 ${drawStars()}
-<g class="sky-right">
+<g>
 <circle class="halo" cx="1330" cy="230" r="300" fill="url(#halo)"/>
 <circle cx="1330" cy="230" r="128" fill="url(#moon)"/>
 </g>
-<g class="sky-left">${drawLightning()}</g>
+<g>${drawLightning()}</g>
 <rect class="flash" x="-400" y="-600" width="2400" height="2300" fill="#ff7a5a"/>
 <g class="cloud"><ellipse cx="200" cy="90" rx="560" ry="130" fill="url(#cloud)"/><ellipse cx="1500" cy="40" rx="520" ry="120" fill="url(#cloud)"/></g>
 <g class="cloud slow"><ellipse cx="800" cy="10" rx="700" ry="110" fill="url(#cloud)"/><ellipse cx="1180" cy="330" rx="330" ry="34" fill="url(#cloud)"/><ellipse cx="1470" cy="150" rx="260" ry="26" fill="url(#cloud)"/></g>
 ${drawFlock()}
-<g class="land">
+<g>
 ${drawRidge(3, 690, 250, 120, '#2a0809')}
 ${drawRidge(8, 740, 170, 90, '#170405')}
-<g class="right">${drawCathedral(1420, 742, 0.95, stage.isBlazing)}</g>
+<g>${drawCathedral(1420, 742, 0.95, stage.isBlazing)}</g>
 ${extraFog}
 <g class="fog"><ellipse cx="500" cy="770" rx="760" ry="70" fill="url(#fog)"/><ellipse cx="1400" cy="800" rx="640" ry="60" fill="url(#fog)"/></g>
 ${drawRidge(15, 776, 46, 70, '#0b0304')}
 <path d="M-400,816 C0,790 300,826 700,812 C1100,798 1400,830 2000,804 V1700 H-400Z" fill="url(#ground)"/>
 <g class="fog slow"><ellipse cx="900" cy="838" rx="900" ry="54" fill="url(#fog)"/></g>
-<g class="left">
+<g>
 ${drawDeadTree(17, 92, 900, 560, 0.05)}
 ${drawCross(392, 866, 96, 6)}${drawHeadstone(452, 872, 24, 62, -8)}
 ${drawContextStone(percent, stage.isWarning)}
 ${drawRaven(236, 700, 0.85)}
 </g>
-<g class="right">
+<g>
 ${drawDeadTree(44, 1600, 890, 360, -0.1)}
 ${drawCross(1228, 862, 110, -5)}${drawHeadstone(1300, 870, 30, 82, 5)}${drawCross(1470, 872, 78, 9)}${drawHeadstone(1168, 866, 20, 50, -10)}
 ${drawSkull(1368, 888, 1, -12)}${drawSkull(1420, 896, 0.82, 14)}${drawSkull(1392, 856, 0.74, 4)}

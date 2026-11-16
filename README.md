@@ -101,6 +101,15 @@ Everything is in `hooks/register.tsx`:
 The plugin icon, `.claude-plugin/icon.png`, is `art/raven-icon.svg` rendered at
 1024 by 1024 pixels.
 
+Two things keep the scene moving in the desktop app, both learned the hard way:
+
+- **Keep the drawing light.** The app plays a scene's animations only while the
+  drawing stays light, so the trees fork five times, not seven, and the embers
+  rise as six groups, not one by one.
+- **Do not position groups with stylesheet rules.** An earlier version moved
+  parts of the scene with CSS variables and aspect-ratio media queries, and the
+  app then played none of the animations. Use `transform` attributes instead.
+
 `hooks/make-colors.js` and `hooks/make-colors.d.ts` are copied unchanged from
 Claude Code's plugin-authoring skill, which provides them for mods to copy.
 
