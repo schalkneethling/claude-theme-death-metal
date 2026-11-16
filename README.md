@@ -44,7 +44,8 @@ what the stage before it added.
 The final stage, at 97% context.
 
 The figure updates when a turn ends, because that is when Claude Code measures
-the context window.
+the context window. It also updates right after a compaction, from the size the
+compaction reports.
 
 ## Install
 

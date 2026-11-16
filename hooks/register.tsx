@@ -490,19 +490,45 @@ export const register: Register = on => {
     )
   })
 
-  // The engine measures the context window after each turn. A new whole-number
-  // reading sets the look again under the scene's other name, so the app redraws.
-  on('session.measure', async ($, e, next) => {
-    const reading = e.context.percent
+  /** Records a context reading and reports whether the headstone must be redrawn for it. */
+  function takeReading(reading: number | undefined): boolean {
     const hasChanged =
       reading !== undefined && (contextPercent === undefined || Math.round(reading) !== Math.round(contextPercent))
 
     if (hasChanged) {
       contextPercent = reading
+      // The app redraws a scene only when its name changes, so flip to the other name.
       isAlternate = !isAlternate
+    }
+
+    return hasChanged
+  }
+
+  // The engine measures the context window after each turn. A new whole-number
+  // reading sets the look again under the scene's other name, so the app redraws.
+  on('session.measure', async ($, e, next) => {
+    if (takeReading(e.context.percent)) {
       await $.theme.set(buildLook(isAlternate))
     }
 
     return next(e)
+  })
+
+  // A compaction is not a turn, so no measurement follows it, and the engine's own
+  // reading stays at the figure from before until the next response. The compaction
+  // reports the conversation's new size, so work the percentage out from that.
+  on('session.compact', async ($, e, next) => {
+    const result = await next(e)
+    const isMainConversation = e.agentId === undefined
+
+    if (isMainConversation && e.trigger !== 'precompute' && result.skip === undefined && result.tokensAfter !== undefined) {
+      const { window } = (await $.session.usage()).context
+
+      if (takeReading(Math.min(100, (result.tokensAfter / window) * 100))) {
+        await $.theme.set(buildLook(isAlternate))
+      }
+    }
+
+    return result
   })
 }
