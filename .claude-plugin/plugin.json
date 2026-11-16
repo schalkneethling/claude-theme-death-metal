@@ -1,5 +1,6 @@
 {
   "name": "death-metal",
   "version": "0.1.0",
-  "description": "A death metal album cover look: a graveyard under a blood moon behind frosted panels, with the context percentage carved on a tombstone."
+  "description": "A death metal album cover look: a graveyard under a blood moon behind frosted panels, with the context percentage carved on a tombstone.",
+  "license": "MIT"
 }

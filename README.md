@@ -93,3 +93,8 @@ Claude Code's plugin-authoring skill, which provides them for mods to copy.
 ```bash
 claude plugin uninstall death-metal
 ```
+
+## License
+
+The code is MIT licensed, see [LICENSE](LICENSE). The two `make-colors` files
+are Anthropic's and are included as the plugin-authoring skill provides them.
