@@ -85,6 +85,9 @@ Everything is in `hooks/register.tsx`:
 - `STAGES` holds the four context stages and the percentage where each starts.
 - `buildScene` assembles the drawing from the small `draw...` functions above it.
 
+The plugin icon, `.claude-plugin/icon.png`, is `art/raven-icon.svg` rendered at
+1024 by 1024 pixels.
+
 `hooks/make-colors.js` and `hooks/make-colors.d.ts` are copied unchanged from
 Claude Code's plugin-authoring skill, which provides them for mods to copy.
 

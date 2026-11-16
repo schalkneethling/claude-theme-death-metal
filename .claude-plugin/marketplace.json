@@ -1,5 +1,13 @@
 {
   "name": "claude-theme-death-metal",
-  "owner": { "name": "Schalk Neethling" },
-  "plugins": [{ "name": "death-metal", "source": "./" }]
+  "owner": {
+    "name": "Schalk Neethling"
+  },
+  "plugins": [
+    {
+      "name": "death-metal",
+      "source": "./"
+    }
+  ],
+  "description": "A death metal album cover theme for the Claude desktop app: a graveyard under a blood moon that worsens as your context fills"
 }
